@@ -31,7 +31,7 @@
     const endMarker = L.marker([endLat, endLng]).addTo(map).bindPopup("Destination");
 
     // 🔁 Tracer la route via OpenRouteService
-    const apiKey = "TA_CLE_API_OPENROUTESERVICE"; // Remplace par ta vraie clé
+    const apiKey = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImViZjc4NTg4YzgxYTQxNGE5N2E3Y2RmOTFiMTVmMDU3IiwiaCI6Im11cm11cjY0In0="; // Remplace par ta vraie clé
     const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${start[1]},${start[0]}&end=${endLng},${endLat}`;
 
     fetch(url)
@@ -45,3 +45,4 @@
   </script>
 </body>
 </html>
+
