@@ -1,47 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Carte Livraison</title>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- CSS Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <!-- JS Leaflet -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
+  <meta charset="utf-8">
+  <title>Trajet Livreur - Livraison</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
   <style>
-    body { margin:0; padding:0; }
-    #map { width:100%; height:100vh; }
+    #map { height: 100vh; width: 100%; }
   </style>
 </head>
 <body>
-<div id="map"></div>
+  <div id="map"></div>
 
-<script>
-  // Coordonnées départ et arrivée
-  let start = [36.8, 10.2]; // dépôt
-  let end = [36.85, 10.25]; // destination
+  <script>
+    // 🔹 Fonction pour lire les paramètres de l'URL (envoyés depuis FlutterFlow)
+    function getParam(name) {
+      const url = new URL(window.location.href);
+      return parseFloat(url.searchParams.get(name));
+    }
 
-  // Initialisation carte centrée sur le départ
-  let map = L.map('map').setView(start, 13);
+    // 🔸 Point de départ FIXE (livreur / dépôt)
+    const startLat = 36.8065;   // Exemple : Tunis centre
+    const startLng = 10.1815;
 
-  // Ajouter fond OpenStreetMap
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-  }).addTo(map);
+    // 🔸 Coordonnées de la destination (dynamique)
+    const endLat = getParam("endLat") || 36.85;   // Exemple : valeur par défaut
+    const endLng = getParam("endLng") || 10.25;
 
-  // Marker départ et arrivée
-  L.marker(start).addTo(map).bindPopup('Départ');
-  L.marker(end).addTo(map).bindPopup('Destination');
+    // 🔹 Initialiser la carte centrée sur le départ
+    const map = L.map('map').setView([startLat, startLng], 13);
 
-  // Tracer le trajet avec une polyline
-  let route = [
-      start,
-      end
-  ];
-  L.polyline(route, {color: 'blue', weight: 5}).addTo(map);
-</script>
+    // 🔹 Ajouter la couche OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
 
+    // 🔹 Marqueurs
+    const markerStart = L.marker([startLat, startLng]).addTo(map).bindPopup("📍 Dépôt / Livreur");
+    const markerEnd = L.marker([endLat, endLng]).addTo(map).bindPopup("🎯 Destination client");
+
+    // 🔹 Clé API OpenRouteService (remplace ici par la tienne)
+    const apiKey = "TA_CLE_API_OPENROUTESERVICE";
+
+    // 🔹 Appel API pour tracer le trajet
+    fetch(`https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${startLng},${startLat}&end=${endLng},${endLat}`)
+      .then(res => res.json())
+      .then(data => {
+        const coords = data.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
+        const routeLine = L.polyline(coords, {color: 'blue', weight: 5}).addTo(map);
+        map.fitBounds(routeLine.getBounds());
+      })
+      .catch(err => console.error("Erreur de trajet :", err));
+  </script>
 </body>
 </html>
